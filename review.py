@@ -21,7 +21,7 @@ Give clear, simple feedback about:           # PR Review Bot v2
 3. Suggestions to improve
 """
     response = requests.post(
-        "http://localhost:11434/api/generate",
+        "http://host.docker.internal:11434/api/generate",
         json={
             "model": "codellama",
             "prompt": prompt,
