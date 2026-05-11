@@ -50,7 +50,7 @@ if __name__ == "__main__":
     
     if not diff:
         print("No changes found.")
-    else:
+    else:     #this is my project
         print("Sending to Ollama for review...")
         review = review_with_ollama(diff)
         print("Review done! Posting to GitHub...")
