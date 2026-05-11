@@ -1,3 +1,4 @@
+
 import subprocess     # This is my PR review bot
 import requests
 import os
@@ -21,7 +22,7 @@ Give clear, simple feedback about:           # PR Review Bot v2
 3. Suggestions to improve
 """
     response = requests.post(
-        "http://host.docker.internal:11434/api/generate",
+        "http://localhost:11434/api/generate",
         json={
             "model": "codellama",
             "prompt": prompt,
@@ -58,4 +59,4 @@ if __name__ == "__main__":
 def hello():
     print("Hello World")
     x = 1+1
-    return x        
+    return x             
