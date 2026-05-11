@@ -55,3 +55,7 @@ if __name__ == "__main__":
         review = review_with_ollama(diff)
         print("Review done! Posting to GitHub...")
         post_github_comment(review)
+def hello():
+    print("Hello World")
+    x = 1+1
+    return x        
