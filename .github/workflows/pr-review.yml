@@ -7,7 +7,7 @@ on:
 
 jobs:
   review:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
@@ -17,23 +17,6 @@ jobs:
 
       - name: Install Python requests
         run: pip install requests
-
-      - name: Install Ollama
-        run: |
-          curl -fsSL https://ollama.com/install.sh | sh
-
-      - name: Start Ollama
-        run: |
-          ollama serve &
-          sleep 10
-
-      - name: Pull CodeLlama Model
-        run: |
-          ollama pull codellama
-
-      - name: Test Ollama
-        run: |
-          curl http://localhost:11434/api/tags
 
       - name: Run Ollama Review
         env:

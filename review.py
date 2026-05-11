@@ -1,5 +1,4 @@
-
-import subprocess     # This is my PR review bot
+import subprocess
 import requests
 import os
 
@@ -16,7 +15,7 @@ def review_with_ollama(diff_text):
 
 {diff_text}
 
-Give clear, simple feedback about:           # PR Review Bot v2
+Give clear, simple feedback about:
 1. Any bugs or errors
 2. Code quality issues  
 3. Suggestions to improve
@@ -56,7 +55,3 @@ if __name__ == "__main__":
         review = review_with_ollama(diff)
         print("Review done! Posting to GitHub...")
         post_github_comment(review)
-def hello():
-    print("Hello World")
-    x = 1+1
-    return x             
