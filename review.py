@@ -10,61 +10,43 @@ def get_diff():
 
     try:
         diff = subprocess.check_output(
-            ["git", "diff", "HEAD~1", "HEAD"],
+            ["git", "diff", "--stat"],
             text=True,
             encoding="utf-8",
             errors="ignore"
         )
 
-        print(f"Diff length: {len(diff)} characters")
+        print(diff)
 
-        # send only small diff to Ollama
-        return diff[:1000]
+        return diff[:300]
 
     except Exception as e:
-        print("Error getting diff:", e)
-        return "No diff found"
+        print("Error:", e)
+        return "No diff"
 
 
 def review_with_ollama(diff):
     print("Sending to Ollama for review...")
 
-    prompt = f"""
-Review this code briefly.
-
-Mention:
-- Bugs
-- Improvements
-
-Code:
-{diff}
-"""
+    prompt = f"Review this briefly:\n{diff}"
 
     response = requests.post(
         OLLAMA_URL,
         json={
-            "model": "llama3.2",
+            "model": "tinyllama",
             "prompt": prompt,
             "stream": False
         },
-        timeout=120
+        timeout=30
     )
 
-    result = response.json()
-
-    return result.get("response", "No review generated")
+    return response.json()["response"]
 
 
 def post_github_comment(comment):
-    print("Posting comment to GitHub...")
-
     token = os.environ.get("GITHUB_TOKEN")
     repo = os.environ.get("GITHUB_REPOSITORY")
     pr_number = os.environ.get("PR_NUMBER")
-
-    if not pr_number:
-        print("No PR number found")
-        return
 
     url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
 
@@ -74,16 +56,13 @@ def post_github_comment(comment):
     }
 
     data = {
-        "body": f"## 🤖 Ollama AI Review\n\n{comment}"
+        "body": f"## 🤖 AI Review\n\n{comment}"
     }
 
     response = requests.post(url, json=data, headers=headers)
 
-    if response.status_code == 201:
-        print("Comment posted successfully!")
-    else:
-        print(f"Failed: {response.status_code}")
-        print(response.text)
+    print(response.status_code)
+    print(response.text)
 
 
 if __name__ == "__main__":
@@ -91,6 +70,6 @@ if __name__ == "__main__":
 
     review = review_with_ollama(diff)
 
-    print("Review generated successfully!")
+    print("Review generated!")
 
     post_github_comment(review)
