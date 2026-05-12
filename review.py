@@ -21,13 +21,13 @@ Give clear, simple feedback about:
 3. Suggestions to improve
 """
     response = requests.post(
-        "http://host.docker.internal:11434/api/generate",
+        "http://127.0.0.1:11434/api/generate",
         json={
             "model": "codellama",
             "prompt": prompt,
             "stream": False
         },
-        timeout=120
+        timeout=180
     )
     return response.json()["response"]
 
