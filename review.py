@@ -1,6 +1,7 @@
 import subprocess
 import requests
 import os
+pr_number = os.environ["PR_NUMBER"]
 import sys
 
 def get_git_diff():
@@ -31,8 +32,9 @@ def post_github_comment(comment):
     token = os.environ.get("GITHUB_TOKEN")
     repo = os.environ.get("GITHUB_REPOSITORY")
     sha = os.environ.get("GITHUB_SHA")
+    pr_number = os.environ.get("PR_NUMBER")
 
-    url = f"https://api.github.com/repos/{repo}/commits/{sha}/comments"
+    url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
     headers = {
         "Authorization": f"token {token}",
         "Accept": "application/vnd.github.v3+json"
