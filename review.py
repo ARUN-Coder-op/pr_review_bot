@@ -1,14 +1,14 @@
 import subprocess
 import requests
 import os
+import sys
 
 def get_git_diff():
     result = subprocess.run(
         ["git", "diff", "HEAD~1", "HEAD"],
-        capture_output=True,
-        text=True
+        capture_output=True
     )
-    return result.stdout
+    return result.stdout.decode("utf-8", errors="ignore")
 
 def review_with_ollama(diff_text):
     prompt = f"""You are a code reviewer. Review this code change and give helpful comments:
@@ -43,18 +43,20 @@ def post_github_comment(comment):
     }
     data = {"body": f"## 🤖 Ollama AI Code Review\n\n{comment}"}
     response = requests.post(url, json=data, headers=headers)
-    
+
     if response.status_code == 201:
-        print("✅ Comment posted to GitHub!")
+        print("Comment posted to GitHub!")
     else:
-        print(f"❌ Failed: {response.status_code} - {response.text}")
+        print(f"Failed: {response.status_code} - {response.text}")
 
 if __name__ == "__main__":
     print("Getting code diff...")
     diff = get_git_diff()
-    
+    print(f"Diff length: {len(diff)} characters")
+
     if not diff:
         print("No changes found.")
+        sys.exit(0)
     else:
         print("Sending to Ollama for review...")
         review = review_with_ollama(diff)
