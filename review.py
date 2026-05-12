@@ -1,66 +1,87 @@
+import os
 import subprocess
 import requests
-import os
-pr_number = os.environ.get("PR_NUMBER")
-import sys
 
-def get_git_diff():
-    result = subprocess.run(
+OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
+
+
+def get_diff():
+    print("Getting code diff...")
+
+    diff = subprocess.check_output(
         ["git", "diff", "HEAD~1", "HEAD"],
-        capture_output=True
+        text=True,
+        encoding="utf-8",
+        errors="ignore"
     )
-    return result.stdout.decode("utf-8", errors="ignore")
 
-def review_with_ollama(diff_text):
-    prompt = f"Review this code change briefly:\n\n{diff_text}\n\nGive short feedback on bugs and improvements."
-    
+    print(f"Diff length: {len(diff)} characters")
+    return diff[:4000]
+
+
+def review_with_ollama(diff):
+    print("Sending to Ollama for review...")
+
+    prompt = f"""
+You are an AI code reviewer.
+
+Review this code diff and provide:
+- Bugs
+- Improvements
+- Security issues
+- Code quality suggestions
+
+Code Diff:
+{diff}
+"""
+
     response = requests.post(
-        "http://127.0.0.1:11434/api/generate",
+        OLLAMA_URL,
         json={
             "model": "llama3.2",
             "prompt": prompt,
-            "stream": False,
-            "options": {
-                "num_predict": 600
-            }
+            "stream": False
         },
-        timeout=300
+        timeout=600
     )
-    return response.json()["response"]
+
+    result = response.json()
+    return result.get("response", "No review generated")
+
 
 def post_github_comment(comment):
+    print("Posting to GitHub...")
+
     token = os.environ.get("GITHUB_TOKEN")
     repo = os.environ.get("GITHUB_REPOSITORY")
-    sha = os.environ.get("GITHUB_SHA")
     pr_number = os.environ.get("PR_NUMBER")
 
-if pr_number:
+    if not pr_number:
+        print("No PR number found")
+        return
+
     url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
-else:
-    print("No PR number found")
-    exit()
+
     headers = {
         "Authorization": f"token {token}",
-        "Accept": "application/vnd.github.v3+json"
+        "Accept": "application/vnd.github+json"
     }
-    data = {"body": f"## 🤖 Ollama AI Code Review\n\n{comment}"}
+
+    data = {
+        "body": f"## 🤖 Ollama AI Code Review\n\n{comment}"
+    }
+
     response = requests.post(url, json=data, headers=headers)
 
     if response.status_code == 201:
-        print("Comment posted to GitHub!")
+        print("Comment posted successfully!")
     else:
         print(f"Failed: {response.status_code} - {response.text}")
 
-if __name__ == "__main__":
-    print("Getting code diff...")
-    diff = get_git_diff()
-    print(f"Diff length: {len(diff)} characters")
 
-    if not diff:
-        print("No changes found.")
-        sys.exit(0)
-    else:
-        print("Sending to Ollama for review...")
-        review = review_with_ollama(diff)
-        print("Review done! Posting to GitHub...")
-        post_github_comment(review)
+if __name__ == "__main__":
+    diff = get_diff()
+    review = review_with_ollama(diff)
+    print("Review done!")
+
+    post_github_comment(review)
