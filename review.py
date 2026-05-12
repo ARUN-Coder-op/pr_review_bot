@@ -17,7 +17,9 @@ def get_diff():
         )
 
         print(f"Diff length: {len(diff)} characters")
-        return diff[:4000]
+
+        # send only small diff to Ollama
+        return diff[:1000]
 
     except Exception as e:
         print("Error getting diff:", e)
@@ -28,15 +30,13 @@ def review_with_ollama(diff):
     print("Sending to Ollama for review...")
 
     prompt = f"""
-You are an AI code reviewer.
+Review this code briefly.
 
-Review this code diff and provide:
+Mention:
 - Bugs
 - Improvements
-- Security issues
-- Code quality suggestions
 
-Code Diff:
+Code:
 {diff}
 """
 
@@ -47,7 +47,7 @@ Code Diff:
             "prompt": prompt,
             "stream": False
         },
-        timeout=600
+        timeout=120
     )
 
     result = response.json()
@@ -74,7 +74,7 @@ def post_github_comment(comment):
     }
 
     data = {
-        "body": f"## 🤖 Ollama AI Code Review\n\n{comment}"
+        "body": f"## 🤖 Ollama AI Review\n\n{comment}"
     }
 
     response = requests.post(url, json=data, headers=headers)
