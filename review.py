@@ -56,13 +56,13 @@ def post_github_comment(comment):
     }
 
     data = {
-        "body": f"## 🤖 AI Review\n\n{comment}"
+        "body": f"## AI Review\n\n{comment}"
     }
 
     response = requests.post(url, json=data, headers=headers)
 
     print(response.status_code)
-    print(response.text)
+    print("Comment posted successfully")
 
 
 if __name__ == "__main__":
