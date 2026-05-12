@@ -11,23 +11,19 @@ def get_git_diff():
     return result.stdout.decode("utf-8", errors="ignore")
 
 def review_with_ollama(diff_text):
-    prompt = f"""You are a code reviewer. Review this code change and give helpful comments:
-
-{diff_text}
-
-Give clear, simple feedback about:
-1. Any bugs or errors
-2. Code quality issues
-3. Suggestions to improve
-"""
+    prompt = f"Review this code change briefly:\n\n{diff_text}\n\nGive short feedback on bugs and improvements."
+    
     response = requests.post(
         "http://127.0.0.1:11434/api/generate",
         json={
-            "model": "codellama",
+            "model": "llama3.2",
             "prompt": prompt,
-            "stream": False
+            "stream": False,
+            "options": {
+                "num_predict": 200
+            }
         },
-        timeout=180
+        timeout=300
     )
     return response.json()["response"]
 
