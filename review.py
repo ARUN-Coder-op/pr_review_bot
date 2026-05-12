@@ -1,7 +1,7 @@
 import subprocess
 import requests
 import os
-pr_number = os.environ["PR_NUMBER"]
+pr_number = os.environ.get("PR_NUMBER")
 import sys
 
 def get_git_diff():
@@ -34,7 +34,11 @@ def post_github_comment(comment):
     sha = os.environ.get("GITHUB_SHA")
     pr_number = os.environ.get("PR_NUMBER")
 
+if pr_number:
     url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
+else:
+    print("No PR number found")
+    exit()
     headers = {
         "Authorization": f"token {token}",
         "Accept": "application/vnd.github.v3+json"
