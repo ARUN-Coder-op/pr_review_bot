@@ -20,7 +20,7 @@ def review_with_ollama(diff_text):
             "prompt": prompt,
             "stream": False,
             "options": {
-                "num_predict": 200
+                "num_predict": 600
             }
         },
         timeout=300
