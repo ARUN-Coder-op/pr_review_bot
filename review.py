@@ -23,8 +23,7 @@ def get_diff():
     except Exception as e:
         print("Error:", e)
         return "No diff"
-
-
+    
 def review_with_ollama(diff):
     print("Sending to Ollama for review...")
 
