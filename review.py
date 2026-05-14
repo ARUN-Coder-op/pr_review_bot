@@ -28,7 +28,19 @@ def get_diff():
 def review_with_ollama(diff):
     print("Sending to Ollama for review...")
 
-    prompt = f"Review this briefly:\n{diff}"
+    prompt = f"""
+You are an AI code reviewer.
+
+Analyze this code diff and provide:
+1. Possible bugs
+2. Code improvements
+3. Readability suggestions
+
+Keep the response short and professional.
+
+Code Diff:
+{diff}
+"""
 
     response = requests.post(
         OLLAMA_URL,
