@@ -8,7 +8,7 @@ OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
 def get_diff():
     print("Getting code diff...")
 
-    try:
+    try:                                         #this code helps us to give the proper code for analyzing the PR comments so it would be helpful for that
         diff = subprocess.check_output(
             ["git", "diff", "--stat"],
             text=True,
