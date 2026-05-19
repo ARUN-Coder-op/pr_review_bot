@@ -1,11 +1,14 @@
 name: PR Code Review
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
 
-jobs:
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:                     
   review:
     runs-on: self-hosted
 
@@ -22,5 +25,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_SHA: ${{ github.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: python review.py

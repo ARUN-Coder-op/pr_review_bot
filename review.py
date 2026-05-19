@@ -1,57 +1,86 @@
+import os
 import subprocess
 import requests
-import os
 
-def get_git_diff():
-    result = subprocess.run(
-        ["git", "diff", "HEAD~1", "HEAD"],
-        capture_output=True,
-        text=True
-    )
-    return result.stdout
+OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
 
-def review_with_ollama(diff_text):
-    prompt = f"""You are a code reviewer. Review this code change and give helpful comments:
 
-{diff_text}
+def get_diff():
+    print("Getting code diff...")
 
-Give clear, simple feedback about:
-1. Any bugs or errors
-2. Code quality issues  
-3. Suggestions to improve
+    try:                                         #this code helps us to give the proper code for analyzing the PR comments so it would be helpful for that
+        diff = subprocess.check_output(
+            ["git", "diff", "--stat"],
+            text=True,
+            encoding="utf-8",
+            errors="ignore"
+        )
+
+        print(diff)
+
+        return diff[:300]
+
+    except Exception as e:
+        print("Error:", e)
+        return "No diff"
+    
+def review_with_ollama(diff):
+    print("Sending to Ollama for review...")
+
+    prompt = f"""
+You are an AI code reviewer.
+
+Analyze this code diff and provide:
+1. Possible bugs
+2. Code improvements
+3. Readability suggestions
+
+Keep the response short and professional.
+
+Code Diff:
+{diff}
 """
+
     response = requests.post(
-        "http://localhost:11434/api/generate",
+        OLLAMA_URL,
         json={
-            "model": "codellama",
+            "model": "tinyllama",
             "prompt": prompt,
             "stream": False
-        }
+        },
+        timeout=120
     )
+
     return response.json()["response"]
+
 
 def post_github_comment(comment):
     token = os.environ.get("GITHUB_TOKEN")
     repo = os.environ.get("GITHUB_REPOSITORY")
-    sha = os.environ.get("GITHUB_SHA")
+    pr_number = os.environ.get("PR_NUMBER")
 
-    url = f"https://api.github.com/repos/{repo}/commits/{sha}/comments"
+    url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
+
     headers = {
         "Authorization": f"token {token}",
-        "Accept": "application/vnd.github.v3+json"
+        "Accept": "application/vnd.github+json"
     }
-    data = {"body": comment}
-    requests.post(url, json=data, headers=headers)
-    print("Comment posted to GitHub!")
+
+    data = {
+        "body": f"## AI Review\n\n{comment}"
+    }
+
+    response = requests.post(url, json=data, headers=headers)
+
+    print(response.status_code)
+    print("Comment posted successfully")
+
 
 if __name__ == "__main__":
-    print("Getting code diff...")
-    diff = get_git_diff()
-    
-    if not diff:
-        print("No changes found.")
-    else:
-        print("Sending to Ollama for review...")
-        review = review_with_ollama(diff)
-        print("Review done! Posting to GitHub...")
-        post_github_comment(review)
+    diff = get_diff()
+
+    review = review_with_ollama(diff)
+
+    print("Review generated!")
+
+    post_github_comment(review)
